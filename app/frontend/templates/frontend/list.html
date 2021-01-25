@@ -60,8 +60,20 @@
 <!--Main Script-->
 <script>
     /*
-    1. Fetch data
+    activieTask = null 
+    list_snapshot = previous state list 
 
+    1. Fetch data
+    2. Create Task on Submit
+    3. Edit the Task
+    4. Delete the Task
+    5. Cross Task when completed
+
+    Notes: 
+    Add event listeners
+    Render cross when task completed
+    Remove extra data on re redner
+    CSRF Token
     */
 
     function getCookie(name) {
@@ -121,22 +133,35 @@
             var list = data;
             //Simple loop
             for(var item in list){
-                var item = `
+                var task = `
                 <div id="data-row-${item}" class="task-wrapper">
                     <div class="task-info one">
                         <span class="task-title">${list[item].title}</span>    
                     </div>
                     <div class="task-info two">
-                        <button class="btn btn-warning"> Edit</button>    
+                        <button class="btn btn-warning edit"> Edit</button>    
                     </div>
                     <div class="task-info three">
                         <button class="btn btn-danger"> Delete</button>    
                     </div>        
                 </div>`;
-                list_wrapper.innerHTML = list_wrapper.innerHTML + item;
+                list_wrapper.innerHTML = list_wrapper.innerHTML + task;
+                
+                var btn_edit = document.getElementsByClassName('edit');
+                console.log(btn_edit[item]);
+                console.log('Item ==>',item);
+                btn_edit[item].addEventListener('click',function(){
+                    edit_task();
+                });
+
             }
         });
 
+    }
+
+    
+    function edit_task(){
+        console.log('Edit task ==>');
     }
 
     
