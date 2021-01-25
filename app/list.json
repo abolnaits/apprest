@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1,
+        "title": "Ir al supermaxi",
+        "completed": false
+    },
+    {
+        "id": 2,
+        "title": "Preparar la cena",
+        "completed": false
+    },
+    {
+        "id": 3,
+        "title": "Pasear a Baltito",
+        "completed": false
+    },
+    {
+        "id": 4,
+        "title": "Ver las noticias",
+        "completed": false
+    },
+    {
+        "id": 5,
+        "title": "Ir a trotar",
+        "completed": false
+    }
+]
