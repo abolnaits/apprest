@@ -38,13 +38,13 @@
     <div id="task-container">
         <h1 class="text-center">Todo Task List</h1>
         <div id="form-wrapper">
-            <form>
+            <form id="form">
                 <div class="form-group">
                   <label for="title">Title</label>
                   <input type="text" class="form-control" id="title" aria-describedby="titleHelp" name="title">
                   <small id="titleHelp" class="form-text text-muted">Add the title for the task.</small>
                 </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary">Add</button>
               </form>
         </div>
         <div id="list-wrapper">
@@ -64,10 +64,53 @@
 
     */
 
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
     build_task_list();
+
+    var form = document.getElementById('form-wrapper');
+    form.addEventListener('submit',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.log('Submit ==>');
+
+        var url = 'http://localhost:8000/api/task-create/';
+
+        var title = document.getElementById('title');
+        fetch(url,{
+            method:'POST',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'title':title.value
+            })
+        }).then(function(res){
+            build_task_list();
+            document.getElementById('form').reset();
+        });
+
+    });
 
     function build_task_list(){
         var list_wrapper = document.getElementById('list-wrapper');
+        list_wrapper.innerHTML = '';
         var url = 'http://localhost:8000/api/task-list/';
 
         fetch(url).then(function(res){
@@ -95,6 +138,8 @@
         });
 
     }
+
+    
 </script>
 </body>
 </html>
