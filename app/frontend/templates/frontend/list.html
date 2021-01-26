@@ -76,6 +76,8 @@
     CSRF Token
     */
 
+    var active_item = null;
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -147,24 +149,55 @@
                 </div>`;
                 list_wrapper.innerHTML = list_wrapper.innerHTML + task;
                 
-                var btn_edit = document.getElementsByClassName('edit');
-                console.log(btn_edit[item]);
-                console.log('Item ==>',item);
+                
+                /*
                 btn_edit[item].addEventListener('click',function(){
                     edit_task();
                 });
-
+                */
+                
             }
+
+            //Add event
+            for(var item in list){
+                (function(i){
+                    console.log('Item ==>',i);
+                    var btn_edit = document.getElementsByClassName('edit')[i];
+                    btn_edit.addEventListener('click',function(){
+                        edit_task(list[i]);
+                    });
+                })(item);
+            }   
         });
 
     }
 
     
-    function edit_task(){
-        console.log('Edit task ==>');
+    function edit_task(i){
+        //console.log('Edit task ==>',i);
+        active_item = i;
+        console.log('Active ==>',active_item);
+        //Fill the title
+        document.getElementById('title').value = active_item.title;
     }
 
-    
+    /*
+    var aux =function(){
+        var counter = 0;
+        function add(){
+            console.log('Adding');
+            counter = counter + 1;
+            console.log('Counter ==> ',counter);
+        }
+        return add;
+    }();
+    //var aux = padre();
+
+    console.log(aux,typeof aux);
+    aux();
+    aux();
+    aux();
+    */
 </script>
 </body>
 </html>
