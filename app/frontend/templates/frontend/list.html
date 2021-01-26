@@ -86,6 +86,8 @@
     */
 
     var active_item = null;
+    //Save the previous list state
+    var list_snap = [];
 
     function getCookie(name) {
         let cookieValue = null;
@@ -138,7 +140,7 @@
 
     function build_task_list(){
         var list_wrapper = document.getElementById('list-wrapper');
-        list_wrapper.innerHTML = '';
+        //list_wrapper.innerHTML = '';
         var url = 'http://localhost:8000/api/task-list/';
 
         fetch(url).then(function(res){
@@ -150,7 +152,11 @@
             //Simple loop
             for(var item in list){
                 var class_state = list[item].completed ? 'completed' : 'not-completed';
-
+                //console.log('Row ==> ',`data-row-${item}`,document.getElementById(`data-row-${item}`));
+                //Delete all previous items if they already exists
+                if(document.getElementById(`data-row-${item}`)){
+                    document.getElementById(`data-row-${item}`).remove();
+                }
                 var task = `
                 <div id="data-row-${item}" class="task-wrapper">
                     <div class="task-info one">
@@ -171,8 +177,15 @@
                     edit_task();
                 });
                 */
-                
+               
             }
+            console.log('Snap ==>',list_snap);
+            if(list_snap.length > list.length){
+                for(var i = list.length;i<list_snap.length;i++){
+                    document.getElementById(`data-row-${i}`).remove();
+                }
+            }
+            list_snap = list;
 
             //Add event
             for(var item in list){
