@@ -105,6 +105,11 @@
 
         var url = 'http://localhost:8000/api/task-create/';
 
+        if(active_item != null){
+            url = `http://localhost:8000/api/task-update/${active_item.id}/`;
+            active_item = null;
+        }
+
         var title = document.getElementById('title');
         fetch(url,{
             method:'POST',
