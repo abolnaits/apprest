@@ -34,6 +34,12 @@
         .task-wrapper .task-title{
             cursor: pointer;
         }
+        .task-wrapper .task-title.completed{
+            text-decoration: line-through;
+        }
+        .task-wrapper .task-title.not-completed{
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -143,10 +149,12 @@
             var list = data;
             //Simple loop
             for(var item in list){
+                var class_state = list[item].completed ? 'completed' : 'not-completed';
+
                 var task = `
                 <div id="data-row-${item}" class="task-wrapper">
                     <div class="task-info one">
-                        <span class="task-title">${list[item].title}</span>    
+                        <span class="task-title ${class_state}">${list[item].title}</span>    
                     </div>
                     <div class="task-info two">
                         <button class="btn btn-warning edit"> Edit</button>    
@@ -199,7 +207,7 @@
 
     function delete_task(i){
         console.log('Delete ==>',i);
-        var url = `http://localhost:8000/api/task-delete/${i.id}`;
+        var url = `http://localhost:8000/api/task-delete/${i.id}/`;
         //Ajax 
         fetch(url,{
             method:'DELETE',
@@ -218,8 +226,9 @@
 
     function complete_task(i){
         console.log('Complete ==> ',i);
-        var completed = !i.complete_task;
-        var url = `http://localhost:8000/api/task-update/${i.id}`;
+        var completed = i.completed;
+        //console.log(completed,!completed);
+        var url = `http://localhost:8000/api/task-update/${i.id}/`;
         //Ajax 
         fetch(url,{
             method:'POST',
@@ -229,7 +238,7 @@
             },
             body:JSON.stringify({
                 'title':i.title,
-                'completed':completed
+                'completed':!completed
             })
         }).then(function(res){
             console.log(res);

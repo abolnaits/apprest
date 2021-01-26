@@ -51,7 +51,7 @@ def task_create(request):
 @api_view(['POST'])
 def task_update(request,pk):
     # Creo un objeto en la Tabla Task
-    print('Update ==>',request)
+    print('Update ==>')
     task = Task.objects.get(id=pk)
     serializer = TaskSerializer(instance=task,data=request.data)
     if serializer.is_valid():
