@@ -31,6 +31,9 @@
             width: 14%;
             text-align: center;
         }
+        .task-wrapper .task-title{
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -169,11 +172,15 @@
                     console.log('Item ==>',i);
                     var btn_edit = document.getElementsByClassName('edit')[i];
                     var btn_delete = document.getElementsByClassName('delete')[i];
+                    var span_title = document.getElementsByClassName('task-title')[i];
                     btn_edit.addEventListener('click',function(){
                         edit_task(list[i]);
                     });
                     btn_delete.addEventListener('click',function(){
                         delete_task(list[i]);
+                    });
+                    span_title.addEventListener('click',function(){
+                        complete_task(list[i]);
                     });
                 })(item);
             }   
@@ -209,6 +216,26 @@
         });
     }
 
+    function complete_task(i){
+        console.log('Complete ==> ',i);
+        var completed = !i.complete_task;
+        var url = `http://localhost:8000/api/task-update/${i.id}`;
+        //Ajax 
+        fetch(url,{
+            method:'POST',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'title':i.title,
+                'completed':completed
+            })
+        }).then(function(res){
+            console.log(res);
+            build_task_list();
+        });
+    }
     /*
     var aux =function(){
         var counter = 0;
