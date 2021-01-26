@@ -149,7 +149,7 @@
                         <button class="btn btn-warning edit"> Edit</button>    
                     </div>
                     <div class="task-info three">
-                        <button class="btn btn-danger"> Delete</button>    
+                        <button class="btn btn-danger delete"> Delete</button>    
                     </div>        
                 </div>`;
                 list_wrapper.innerHTML = list_wrapper.innerHTML + task;
@@ -168,8 +168,12 @@
                 (function(i){
                     console.log('Item ==>',i);
                     var btn_edit = document.getElementsByClassName('edit')[i];
+                    var btn_delete = document.getElementsByClassName('delete')[i];
                     btn_edit.addEventListener('click',function(){
                         edit_task(list[i]);
+                    });
+                    btn_delete.addEventListener('click',function(){
+                        delete_task(list[i]);
                     });
                 })(item);
             }   
@@ -184,6 +188,25 @@
         console.log('Active ==>',active_item);
         //Fill the title
         document.getElementById('title').value = active_item.title;
+    }
+
+    function delete_task(i){
+        console.log('Delete ==>',i);
+        var url = `http://localhost:8000/api/task-delete/${i.id}`;
+        //Ajax 
+        fetch(url,{
+            method:'DELETE',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'id':i.value
+            })
+        }).then(function(res){
+            console.log(res);
+            build_task_list();
+        });
     }
 
     /*
