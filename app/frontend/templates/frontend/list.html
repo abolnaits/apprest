@@ -180,6 +180,8 @@
                
             }
             console.log('Snap ==>',list_snap);
+            // If the snap has more items than the current list
+            // remove items
             if(list_snap.length > list.length){
                 for(var i = list.length;i<list_snap.length;i++){
                     document.getElementById(`data-row-${i}`).remove();
