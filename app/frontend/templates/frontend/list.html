@@ -121,9 +121,11 @@
             console.log('Edit item ==>');
         }
 
+        var estado_previo = [];
+        //Genero la lista de tareas en HTML
         function build_list(){
             const list_wrapper = document.getElementById('list-wrapper');
-            list_wrapper.innerHTML = '';
+            //list_wrapper.innerHTML = '';
             //Get the data from the API
             var url = 'http://127.0.0.1:8000/api/task-list/';
 
@@ -131,16 +133,30 @@
                 //console.log('Resp ==>',resp);
                 return resp.json();
             }).then(function(data){
-                console.log('Data ==> ',data);
+                //console.log('Data ==> ',data);
                 var list = data;
+                //console.log('Wrapper antes ==>',document.getElementsByClassName('task-wrapper'));
+                    
                 for(var index in list){
+                    //console.log('Index ==>',index);
+                    //Elimino items previamente existentes
+                    try{
+                        //console.log('Div remove ==> ',document.getElementById(`data-row-${index}`));
+                        //console.log('Remover ==>',document.getElementById(`data-row-${index}`));
+                        document.getElementById(`data-row-${index}`).remove();
+                    }catch(e){
+                        //console.error('Error ==>',e);
+                    }
+                    //console.log('Wrapper ==>',document.getElementsByClassName('task-wrapper'));
+                    
                     //console.log(index,list[index]);
                     //Genero el HTML para el listado de tareas
                     const item = list[index];
+                    const clase = item.completed ? 'completed' : 'not-completed';
                     const task = `
                     <div id="data-row-${index}" class="task-wrapper">
                         <div class="task-info one">
-                            <span class="task-title">${item.title}</span>    
+                            <span class="task-title ${clase}">${item.title}</span>    
                         </div>
                         <div class="task-info two">
                             <button class="btn btn-warning edit"> Edit</button>    
@@ -153,10 +169,27 @@
                     list_wrapper.innerHTML = list_wrapper.innerHTML + task;
 
                 }
-
+                
+                //Verifico si hay mas divs en el HTML que las tareas recibidas en Ajax
+                console.log('Lista previa ==>',estado_previo.length,'Lista actual ==> ',list.length);
+                
+                //Elimino los items que no fueron eliminados al hacer click en eliminar
+                if(estado_previo.length > list.length){
+                    for(var i=list.length;i<estado_previo.length;i++){
+                        //document.getElementById('data-row-'+i);
+                        console.log('Eliminar ==>',i);
+                        document.getElementById('data-row-'+i).remove();
+                    }
+                }
+                
+                //Actualizo el estado previo
+                estado_previo = list;
+                //console.log('Wrapper despues ==>',document.getElementsByClassName('task-wrapper'));
+                
                 const btn_edit = document.getElementsByClassName('edit');
                 const btn_delete = document.getElementsByClassName('delete');
-                
+                const title_task = document.getElementsByClassName('task-title');
+
                 //console.log('Edit btn ==>',btn_edit);    
                 for(var index in list){
                     
@@ -164,16 +197,21 @@
                     //console.log('Btn ==> ',btn_edit[index]);
                     //Closure que recuerda el valor actual del index al ser ejecutado
                     (function x(i){
-                        console.log('Index ==>',i);
-                        console.log('Btn ==> ',btn_edit[i]);
+                        //console.log('Index ==>',i);
+                        //console.log('Btn ==> ',btn_edit[i]);
                         btn_edit[i].addEventListener('click',function(e){
-                            console.log('Index ==>',i);
+                            //console.log('Index ==>',i);
                             edit_item(list[i]);
                         });
 
                         btn_delete[i].addEventListener('click',function(e){
-                            console.log('Index ==>',i);
+                            //console.log('Index ==>',i);
                             delete_item(list[i]);
+                        });
+
+                        title_task[i].addEventListener('click',function(e){
+                            //console.log('Index ==>',i);
+                            complete_item(list[i]);
                         });
                         
                     })(index);
@@ -195,6 +233,38 @@
         //ELiminar
         function delete_item(item){
             console.log('Delete item ==>',item);
+
+            var url = 'http://127.0.0.1:8000/api/task-delete/'+item.id+'/';
+
+            //Genero la peticion
+            fetch(url,{
+                method:'DELETE',
+                headers:{
+                    'Content-type':'application/json'
+                }
+            }).then((resp) => {
+                build_list();
+            });
+        }
+
+        //Marcar como completado
+        function complete_item(item){
+            console.log('Complete item ==>',item);
+            var url = 'http://127.0.0.1:8000/api/task-update/'+item.id+'/';
+            //Envio la peticion
+
+            fetch(url,{
+                method:'POST',
+                headers:{
+                    'Content-type':'application/json'
+                },
+                body:JSON.stringify({
+                    'title':item.title,
+                    'completed': !(item.completed)
+                })
+            }).then((resp)=>{
+                build_list();
+            });
         }
         //Carga la lista de tareas
         build_list();
