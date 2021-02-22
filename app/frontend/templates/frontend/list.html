@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <title>Todo App</title>
+    <title>To do App </title>
     <style>
         body{
             background-color: aquamarine;
@@ -43,10 +43,12 @@
     </style>
 </head>
 <body>
-    
+    <!-- Inicio Task Container -->
     <div id="task-container">
-        <h1 class="text-center">Todo Task List</h1>
+        <h1 class="text-center">To do Task List</h1>
+        <!-- Inicio Task Container -->
         <div id="form-wrapper">
+            <!-- Inicio Form -->
             <form id="form">
                 <div class="form-group">
                   <label for="title">Title</label>
@@ -55,229 +57,148 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Add</button>
               </form>
+              <!-- Fin Form -->
         </div>
-        <div id="list-wrapper">
+        <!-- Fin Form Container -->
 
+        <!-- Inicio Task List Container -->
+        <div id="list-wrapper">
         </div>
+        <!-- Fin Task List Container -->
+        
     </div>
+    <!-- Fin Task Container -->
+
     <script
     src="https://code.jquery.com/jquery-3.5.1.js"
     integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
     crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
-<!--Main Script-->
-<script>
-    /*
-    activieTask = null 
-    list_snapshot = previous state list 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+    <!--Main Script-->
+    <script>
+        console.log('!!! Main loaded');
+        //Edit or new item
+        var active_item = null;
 
-    1. Fetch data
-    2. Create Task on Submit
-    3. Edit the Task
-    4. Delete the Task
-    5. Cross Task when completed
+        //Form submit
+        const form = document.getElementById('form-wrapper');
+        console.log('Form ==> ',form);
+        //Agrego el evento en el form
+        form.addEventListener('submit',function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Submit ==>',e);
 
-    Notes: 
-    Add event listeners
-    Render cross when task completed
-    Remove extra data on re redner
-    CSRF Token
-    */
+            var url = 'http://127.0.0.1:8000/api/task-create/';
 
-    var active_item = null;
-    //Save the previous list state
-    var list_snap = [];
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+            if(active_item !== null){
+                url = 'http://127.0.0.1:8000/api/task-update/'+active_item.id+'/';
+                //Reset active item
+                active_item = null;
             }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
+            const title = document.getElementById('title');
+            fetch(url,{
+                method:'POST',
+                headers:{
+                    'Content-type':'application/json',
 
-    build_task_list();
+                },
+                body: JSON.stringify({
+                    'title': title.value
+                })
+            }).then(function(resp){
+                console.log('Adding ==> ',resp);
+                build_list();
+                //Resteo el form
+                document.getElementById('form').reset();
+            });
 
-    var form = document.getElementById('form-wrapper');
-    form.addEventListener('submit',function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        console.log('Submit ==>');
-
-        var url = 'http://localhost:8000/api/task-create/';
-
-        if(active_item != null){
-            url = `http://localhost:8000/api/task-update/${active_item.id}/`;
-            active_item = null;
-        }
-
-        var title = document.getElementById('title');
-        fetch(url,{
-            method:'POST',
-            headers:{
-                'Content-type':'application/json',
-                'X-CSRFToken':csrftoken
-            },
-            body:JSON.stringify({
-                'title':title.value
-            })
-        }).then(function(res){
-            build_task_list();
-            document.getElementById('form').reset();
         });
 
-    });
 
-    function build_task_list(){
-        var list_wrapper = document.getElementById('list-wrapper');
-        //list_wrapper.innerHTML = '';
-        var url = 'http://localhost:8000/api/task-list/';
+        function edit_item(){
+            console.log('Edit item ==>');
+        }
 
-        fetch(url).then(function(res){
-            return res.json();
-        }).then(function(data){
-            console.log('Data ==>',data);
+        function build_list(){
+            const list_wrapper = document.getElementById('list-wrapper');
+            list_wrapper.innerHTML = '';
+            //Get the data from the API
+            var url = 'http://127.0.0.1:8000/api/task-list/';
 
-            var list = data;
-            //Simple loop
-            for(var item in list){
-                var class_state = list[item].completed ? 'completed' : 'not-completed';
-                //console.log('Row ==> ',`data-row-${item}`,document.getElementById(`data-row-${item}`));
-                //Delete all previous items if they already exists
-                if(document.getElementById(`data-row-${item}`)){
-                    document.getElementById(`data-row-${item}`).remove();
+            fetch(url).then((resp) => {
+                //console.log('Resp ==>',resp);
+                return resp.json();
+            }).then(function(data){
+                console.log('Data ==> ',data);
+                var list = data;
+                for(var index in list){
+                    //console.log(index,list[index]);
+                    //Genero el HTML para el listado de tareas
+                    const item = list[index];
+                    const task = `
+                    <div id="data-row-${index}" class="task-wrapper">
+                        <div class="task-info one">
+                            <span class="task-title">${item.title}</span>    
+                        </div>
+                        <div class="task-info two">
+                            <button class="btn btn-warning edit"> Edit</button>    
+                        </div>
+                        <div class="task-info three">
+                            <button class="btn btn-danger delete"> Delete</button>    
+                        </div>         
+                    </div>`;
+                    //Actualizamos el HTML
+                    list_wrapper.innerHTML = list_wrapper.innerHTML + task;
+
                 }
-                var task = `
-                <div id="data-row-${item}" class="task-wrapper">
-                    <div class="task-info one">
-                        <span class="task-title ${class_state}">${list[item].title}</span>    
-                    </div>
-                    <div class="task-info two">
-                        <button class="btn btn-warning edit"> Edit</button>    
-                    </div>
-                    <div class="task-info three">
-                        <button class="btn btn-danger delete"> Delete</button>    
-                    </div>        
-                </div>`;
-                list_wrapper.innerHTML = list_wrapper.innerHTML + task;
+
+                const btn_edit = document.getElementsByClassName('edit');
+                const btn_delete = document.getElementsByClassName('delete');
                 
-                
-                /*
-                btn_edit[item].addEventListener('click',function(){
-                    edit_task();
-                });
-                */
-               
-            }
-            console.log('Snap ==>',list_snap);
-            // If the snap has more items than the current list
-            // remove items `````
-            
-            if(list_snap.length > list.length){
-                for(var i = list.length;i<list_snap.length;i++){
-                    document.getElementById(`data-row-${i}`).remove();
+                //console.log('Edit btn ==>',btn_edit);    
+                for(var index in list){
+                    
+                    //console.log('Index ==>',index);
+                    //console.log('Btn ==> ',btn_edit[index]);
+                    //Closure que recuerda el valor actual del index al ser ejecutado
+                    (function x(i){
+                        console.log('Index ==>',i);
+                        console.log('Btn ==> ',btn_edit[i]);
+                        btn_edit[i].addEventListener('click',function(e){
+                            console.log('Index ==>',i);
+                            edit_item(list[i]);
+                        });
+
+                        btn_delete[i].addEventListener('click',function(e){
+                            console.log('Index ==>',i);
+                            delete_item(list[i]);
+                        });
+                        
+                    })(index);
                 }
-            }
-            list_snap = list;
 
-            //Add event
-            for(var item in list){
-                (function(i){
-                    console.log('Item ==>',i);
-                    var btn_edit = document.getElementsByClassName('edit')[i];
-                    var btn_delete = document.getElementsByClassName('delete')[i];
-                    var span_title = document.getElementsByClassName('task-title')[i];
-                    btn_edit.addEventListener('click',function(){
-                        edit_task(list[i]);
-                    });
-                    btn_delete.addEventListener('click',function(){
-                        delete_task(list[i]);
-                    });
-                    span_title.addEventListener('click',function(){
-                        complete_task(list[i]);
-                    });
-                })(item);
-            }   
-        });
 
-    }
+            });
 
-    
-    function edit_task(i){
-        //console.log('Edit task ==>',i);
-        active_item = i;
-        console.log('Active ==>',active_item);
-        //Fill the title
-        document.getElementById('title').value = active_item.title;
-    }
-
-    function delete_task(i){
-        console.log('Delete ==>',i);
-        var url = `http://localhost:8000/api/task-delete/${i.id}/`;
-        //Ajax 
-        fetch(url,{
-            method:'DELETE',
-            headers:{
-                'Content-type':'application/json',
-                'X-CSRFToken':csrftoken
-            },
-            body:JSON.stringify({
-                'id':i.value
-            })
-        }).then(function(res){
-            console.log(res);
-            build_task_list();
-        });
-    }
-
-    function complete_task(i){
-        console.log('Complete ==> ',i);
-        var completed = i.completed;
-        //console.log(completed,!completed);
-        var url = `http://localhost:8000/api/task-update/${i.id}/`;
-        //Ajax 
-        fetch(url,{
-            method:'POST',
-            headers:{
-                'Content-type':'application/json',
-                'X-CSRFToken':csrftoken
-            },
-            body:JSON.stringify({
-                'title':i.title,
-                'completed':!completed
-            })
-        }).then(function(res){
-            console.log(res);
-            build_task_list();
-        });
-    }
-    /*
-    var aux =function(){
-        var counter = 0;
-        function add(){
-            console.log('Adding');
-            counter = counter + 1;
-            console.log('Counter ==> ',counter);
         }
-        return add;
-    }();
-    //var aux = padre();
 
-    console.log(aux,typeof aux);
-    aux();
-    aux();
-    aux();
-    */
-</script>
+        //Editar recibe un objeto de la lista de tareas obtenidas desde la DB
+        function edit_item(item){
+            console.log('Edit item ==>',item);
+            active_item = item;
+            //Set the title
+            document.getElementById('title').value = active_item.title;
+        }
+
+        //ELiminar
+        function delete_item(item){
+            console.log('Delete item ==>',item);
+        }
+        //Carga la lista de tareas
+        build_list();
+
+    </script>
 </body>
 </html>
