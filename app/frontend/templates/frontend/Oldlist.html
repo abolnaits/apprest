@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <title>Todo App</title>
+    <style>
+        body{
+            background-color: aquamarine;
+        }
+        #task-container{
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            border:1px solid #fff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .task-wrapper .task-info{
+            display: inline-block;
+            padding: 10px 0;
+        }
+        .task-wrapper .task-info.one{
+            width: 70%;
+        }
+        .task-wrapper .task-info.two,.task-wrapper .task-info.three{
+            width: 14%;
+            text-align: center;
+        }
+        .task-wrapper .task-title{
+            cursor: pointer;
+        }
+        .task-wrapper .task-title.completed{
+            text-decoration: line-through;
+        }
+        .task-wrapper .task-title.not-completed{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="task-container">
+        <h1 class="text-center">Todo Task List</h1>
+        <div id="form-wrapper">
+            <form id="form">
+                <div class="form-group">
+                  <label for="title">Title</label>
+                  <input type="text" class="form-control" id="title" aria-describedby="titleHelp" name="title">
+                  <small id="titleHelp" class="form-text text-muted">Add the title for the task.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Add</button>
+              </form>
+        </div>
+        <div id="list-wrapper">
+
+        </div>
+    </div>
+    <script
+    src="https://code.jquery.com/jquery-3.5.1.js"
+    integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+<!--Main Script-->
+<script>
+    /*
+    activieTask = null 
+    list_snapshot = previous state list 
+
+    1. Fetch data
+    2. Create Task on Submit
+    3. Edit the Task
+    4. Delete the Task
+    5. Cross Task when completed
+
+    Notes: 
+    Add event listeners
+    Render cross when task completed
+    Remove extra data on re redner
+    CSRF Token
+    */
+
+    var active_item = null;
+    //Save the previous list state
+    var list_snap = [];
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    build_task_list();
+
+    var form = document.getElementById('form-wrapper');
+    form.addEventListener('submit',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.log('Submit ==>');
+
+        var url = 'http://localhost:8000/api/task-create/';
+
+        if(active_item != null){
+            url = `http://localhost:8000/api/task-update/${active_item.id}/`;
+            active_item = null;
+        }
+
+        var title = document.getElementById('title');
+        fetch(url,{
+            method:'POST',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'title':title.value
+            })
+        }).then(function(res){
+            build_task_list();
+            document.getElementById('form').reset();
+        });
+
+    });
+
+    function build_task_list(){
+        var list_wrapper = document.getElementById('list-wrapper');
+        //list_wrapper.innerHTML = '';
+        var url = 'http://localhost:8000/api/task-list/';
+
+        fetch(url).then(function(res){
+            return res.json();
+        }).then(function(data){
+            console.log('Data ==>',data);
+
+            var list = data;
+            //Simple loop
+            for(var item in list){
+                var class_state = list[item].completed ? 'completed' : 'not-completed';
+                //console.log('Row ==> ',`data-row-${item}`,document.getElementById(`data-row-${item}`));
+                //Delete all previous items if they already exists
+                if(document.getElementById(`data-row-${item}`)){
+                    document.getElementById(`data-row-${item}`).remove();
+                }
+                var task = `
+                <div id="data-row-${item}" class="task-wrapper">
+                    <div class="task-info one">
+                        <span class="task-title ${class_state}">${list[item].title}</span>    
+                    </div>
+                    <div class="task-info two">
+                        <button class="btn btn-warning edit"> Edit</button>    
+                    </div>
+                    <div class="task-info three">
+                        <button class="btn btn-danger delete"> Delete</button>    
+                    </div>        
+                </div>`;
+                list_wrapper.innerHTML = list_wrapper.innerHTML + task;
+                
+                
+                /*
+                btn_edit[item].addEventListener('click',function(){
+                    edit_task();
+                });
+                */
+               
+            }
+            console.log('Snap ==>',list_snap);
+            // If the snap has more items than the current list
+            // remove items `````
+            
+            if(list_snap.length > list.length){
+                for(var i = list.length;i<list_snap.length;i++){
+                    document.getElementById(`data-row-${i}`).remove();
+                }
+            }
+            list_snap = list;
+
+            //Add event
+            for(var item in list){
+                (function(i){
+                    console.log('Item ==>',i);
+                    var btn_edit = document.getElementsByClassName('edit')[i];
+                    var btn_delete = document.getElementsByClassName('delete')[i];
+                    var span_title = document.getElementsByClassName('task-title')[i];
+                    btn_edit.addEventListener('click',function(){
+                        edit_task(list[i]);
+                    });
+                    btn_delete.addEventListener('click',function(){
+                        delete_task(list[i]);
+                    });
+                    span_title.addEventListener('click',function(){
+                        complete_task(list[i]);
+                    });
+                })(item);
+            }   
+        });
+
+    }
+
+    
+    function edit_task(i){
+        //console.log('Edit task ==>',i);
+        active_item = i;
+        console.log('Active ==>',active_item);
+        //Fill the title
+        document.getElementById('title').value = active_item.title;
+    }
+
+    function delete_task(i){
+        console.log('Delete ==>',i);
+        var url = `http://localhost:8000/api/task-delete/${i.id}/`;
+        //Ajax 
+        fetch(url,{
+            method:'DELETE',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'id':i.value
+            })
+        }).then(function(res){
+            console.log(res);
+            build_task_list();
+        });
+    }
+
+    function complete_task(i){
+        console.log('Complete ==> ',i);
+        var completed = i.completed;
+        //console.log(completed,!completed);
+        var url = `http://localhost:8000/api/task-update/${i.id}/`;
+        //Ajax 
+        fetch(url,{
+            method:'POST',
+            headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({
+                'title':i.title,
+                'completed':!completed
+            })
+        }).then(function(res){
+            console.log(res);
+            build_task_list();
+        });
+    }
+    /*
+    var aux =function(){
+        var counter = 0;
+        function add(){
+            console.log('Adding');
+            counter = counter + 1;
+            console.log('Counter ==> ',counter);
+        }
+        return add;
+    }();
+    //var aux = padre();
+
+    console.log(aux,typeof aux);
+    aux();
+    aux();
+    aux();
+    */
+</script>
+</body>
+</html>

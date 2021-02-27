@@ -14,7 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+# Para incluir las urls de otras apps
 from django.urls import path
+# Para incluir las urls de otras apps
 from django.urls import include
 #Generic view that will be used in React build
 from django.views.generic import TemplateView
